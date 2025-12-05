@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
 import api from "../Components/services/api";
 import Navbar from "../Components/Navbar";
+import {
+    PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
+} from 'recharts';
 
 export default function ManagerDashboard() {
     const [activeTab, setActiveTab] = useState("products");
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [analytics, setAnalytics] = useState({ statusDistribution: [], staffActivity: [] });
     const [formData, setFormData] = useState({ name: "", price: "", stock: "", minStock: "", description: "" });
     const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
         fetchProducts();
         fetchOrders();
+        fetchAnalytics();
     }, []);
 
     const fetchProducts = async () => {
@@ -29,6 +34,15 @@ export default function ManagerDashboard() {
             setOrders(res.data);
         } catch (err) {
             console.error("Error fetching orders", err);
+        }
+    };
+
+    const fetchAnalytics = async () => {
+        try {
+            const res = await api.get("/analytics/manager");
+            setAnalytics(res.data);
+        } catch (err) {
+            console.error("Error fetching analytics", err);
         }
     };
 
@@ -77,6 +91,7 @@ export default function ManagerDashboard() {
     };
 
     const lowStock = products.filter((p) => p.stock < p.minStock);
+    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
     return (
         <div>
@@ -86,6 +101,7 @@ export default function ManagerDashboard() {
                     <button className={`tab-button ${activeTab === "products" ? "active" : ""}`} onClick={() => setActiveTab("products")}>Add/Edit Products</button>
                     <button className={`tab-button ${activeTab === "lowstock" ? "active" : ""}`} onClick={() => setActiveTab("lowstock")}>Low Stock {lowStock.length > 0 && <span className="badge">{lowStock.length}</span>}</button>
                     <button className={`tab-button ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}>Manage Orders</button>
+                    <button className={`tab-button ${activeTab === "analytics" ? "active" : ""}`} onClick={() => setActiveTab("analytics")}>Analytics</button>
                 </div>
 
                 <div className="tab-content">
@@ -189,6 +205,56 @@ export default function ManagerDashboard() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {activeTab === "analytics" && (
+                        <div>
+                            <h3 className="section-title">Analytics Dashboard</h3>
+
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem' }}>
+                                <div style={{ flex: '1 1 400px' }}>
+                                    <h4>Order Status Distribution</h4>
+                                    <div style={{ width: '100%', height: 300 }}>
+                                        <ResponsiveContainer>
+                                            <PieChart>
+                                                <Pie
+                                                    data={analytics.statusDistribution}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    labelLine={false}
+                                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                                    outerRadius={100}
+                                                    fill="#8884d8"
+                                                    dataKey="count"
+                                                    nameKey="_id"
+                                                >
+                                                    {analytics.statusDistribution.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                <div style={{ flex: '1 1 400px' }}>
+                                    <h4>Staff Activity (Orders Created/Day)</h4>
+                                    <div style={{ width: '100%', height: 300 }}>
+                                        <ResponsiveContainer>
+                                            <BarChart data={analytics.staffActivity}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="_id" />
+                                                <YAxis allowDecimals={false} />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Bar dataKey="count" fill="#ffc658" name="Orders Created" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

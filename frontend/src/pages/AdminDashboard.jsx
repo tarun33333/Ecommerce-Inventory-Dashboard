@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
 import api from "../Components/services/api";
 import Navbar from "../Components/Navbar";
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+    BarChart, Bar
+} from 'recharts';
 
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState("users");
     const [users, setUsers] = useState([]);
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [analytics, setAnalytics] = useState({ ordersPerDay: [], topProducts: [] });
     const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "staff" });
     const [editingId, setEditingId] = useState(null);
 
@@ -14,6 +19,7 @@ export default function AdminDashboard() {
         fetchUsers();
         fetchProducts();
         fetchOrders();
+        fetchAnalytics();
     }, []);
 
     const fetchUsers = async () => {
@@ -40,6 +46,15 @@ export default function AdminDashboard() {
             setOrders(res.data);
         } catch (err) {
             console.error("Error fetching orders", err);
+        }
+    };
+
+    const fetchAnalytics = async () => {
+        try {
+            const res = await api.get("/analytics/admin");
+            setAnalytics(res.data);
+        } catch (err) {
+            console.error("Error fetching analytics", err);
         }
     };
 
@@ -116,6 +131,7 @@ export default function AdminDashboard() {
                     <button className={`tab-button ${activeTab === "users" ? "active" : ""}`} onClick={() => setActiveTab("users")}>Manage Users</button>
                     <button className={`tab-button ${activeTab === "products" ? "active" : ""}`} onClick={() => setActiveTab("products")}>Manage Products</button>
                     <button className={`tab-button ${activeTab === "orders" ? "active" : ""}`} onClick={() => setActiveTab("orders")}>Manage Orders</button>
+                    <button className={`tab-button ${activeTab === "analytics" ? "active" : ""}`} onClick={() => setActiveTab("analytics")}>Analytics</button>
                     <button className={`tab-button ${activeTab === "alerts" ? "active" : ""}`} onClick={() => setActiveTab("alerts")}>Stock Alerts {stockAlerts.length > 0 && <span className="badge">{stockAlerts.length}</span>}</button>
                 </div>
 
@@ -224,8 +240,8 @@ export default function AdminDashboard() {
                                                     </select>
                                                 ) : (
                                                     <span className={`badge ${order.status === 'Approved' ? 'bg-green' :
-                                                        order.status === 'Rejected' ? 'bg-red' :
-                                                            order.status === 'Shipped' ? 'bg-blue' : ''
+                                                            order.status === 'Rejected' ? 'bg-red' :
+                                                                order.status === 'Shipped' ? 'bg-blue' : ''
                                                         }`}>
                                                         {order.status}
                                                     </span>
@@ -243,6 +259,46 @@ export default function AdminDashboard() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {activeTab === "analytics" && (
+                        <div>
+                            <h3 className="section-title">Analytics Dashboard</h3>
+
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem' }}>
+                                <div style={{ flex: '1 1 400px' }}>
+                                    <h4>Orders per Day (Last 7 Days)</h4>
+                                    <div style={{ width: '100%', height: 300 }}>
+                                        <ResponsiveContainer>
+                                            <LineChart data={analytics.ordersPerDay}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="_id" />
+                                                <YAxis allowDecimals={false} />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Line type="monotone" dataKey="count" stroke="#8884d8" name="Orders" />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                <div style={{ flex: '1 1 400px' }}>
+                                    <h4>Top Selling Products</h4>
+                                    <div style={{ width: '100%', height: 300 }}>
+                                        <ResponsiveContainer>
+                                            <BarChart data={analytics.topProducts}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="_id" />
+                                                <YAxis allowDecimals={false} />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Bar dataKey="totalSold" fill="#82ca9d" name="Units Sold" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 
