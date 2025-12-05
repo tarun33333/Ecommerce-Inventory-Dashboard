@@ -68,10 +68,7 @@ router.put("/:id/status", auth(["staff", "manager", "admin"]), async (req, res) 
                 return res.status(403).json({ msg: "Invalid status transition for Manager" });
             }
         }
-        // Admin can do anything, so no else if needed for admin strict checks, but good to be careful.
-        // For simplicity, Admin bypasses these checks or we can enforce them too. 
-        // The requirement says "Admin Can update any status", so we allow it.
-
+       
         order.status = status;
         await order.save();
         res.json(order);

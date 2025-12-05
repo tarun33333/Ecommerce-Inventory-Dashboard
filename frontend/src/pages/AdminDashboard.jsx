@@ -8,6 +8,7 @@ export default function AdminDashboard() {
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
     const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "staff" });
+    const [editingId, setEditingId] = useState(null);
 
     useEffect(() => {
         fetchUsers();
@@ -208,20 +209,34 @@ export default function AdminDashboard() {
                                             <td>{order.customerName}</td>
                                             <td>₹{order.totalAmount}</td>
                                             <td>
-                                                <select
-                                                    value={order.status}
-                                                    onChange={(e) => updateOrderStatus(order._id, e.target.value)}
-                                                    className="input-field"
-                                                    style={{ padding: '0.25rem' }}
-                                                >
-                                                    <option value="Pending">Pending</option>
-                                                    <option value="Approved">Approved</option>
-                                                    <option value="Rejected">Rejected</option>
-                                                    <option value="Packed">Packed</option>
-                                                    <option value="Shipped">Shipped</option>
-                                                </select>
+                                                {editingId === order._id ? (
+                                                    <select
+                                                        value={order.status}
+                                                        onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                                                        className="input-field"
+                                                        style={{ padding: '0.25rem' }}
+                                                    >
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="Approved">Approved</option>
+                                                        <option value="Rejected">Rejected</option>
+                                                        <option value="Packed">Packed</option>
+                                                        <option value="Shipped">Shipped</option>
+                                                    </select>
+                                                ) : (
+                                                    <span className={`badge ${order.status === 'Approved' ? 'bg-green' :
+                                                        order.status === 'Rejected' ? 'bg-red' :
+                                                            order.status === 'Shipped' ? 'bg-blue' : ''
+                                                        }`}>
+                                                        {order.status}
+                                                    </span>
+                                                )}
                                             </td>
                                             <td>
+                                                {editingId === order._id ? (
+                                                    <button className="btn-primary" onClick={() => setEditingId(null)}>Done</button>
+                                                ) : (
+                                                    <button className="btn-edit" style={{ marginRight: '0.5rem' }} onClick={() => setEditingId(order._id)}>Edit</button>
+                                                )}
                                                 <button className="btn-delete" onClick={() => deleteOrder(order._id)}>Delete</button>
                                             </td>
                                         </tr>
