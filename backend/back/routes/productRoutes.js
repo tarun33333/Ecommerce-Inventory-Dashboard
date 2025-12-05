@@ -23,7 +23,7 @@ const auth = (roles = []) => {
     };
 };
 
-// GET all products (Accessible by all authenticated users)
+// get all products (Accessible by all authenticated users)
 router.get("/", auth(), async (req, res) => {
     try {
         const products = await Product.find();
@@ -33,7 +33,7 @@ router.get("/", auth(), async (req, res) => {
     }
 });
 
-// POST add product (Admin, Manager)
+// post add product (Admin, Manager)
 router.post("/", auth(["admin", "manager"]), async (req, res) => {
     const { name, price, stock, minStock, description } = req.body;
     try {
@@ -45,7 +45,7 @@ router.post("/", auth(["admin", "manager"]), async (req, res) => {
     }
 });
 
-// PUT update product (Admin, Manager)
+// put update product (Admin, Manager)
 router.put("/:id", auth(["admin", "manager"]), async (req, res) => {
     try {
         let product = await Product.findById(req.params.id);
@@ -66,7 +66,7 @@ router.put("/:id", auth(["admin", "manager"]), async (req, res) => {
     }
 });
 
-// PUT update stock only (Staff)
+// put update stock only (Staff)
 router.put("/:id/stock", auth(["admin", "manager", "staff"]), async (req, res) => {
     try {
         let product = await Product.findById(req.params.id);
@@ -83,7 +83,7 @@ router.put("/:id/stock", auth(["admin", "manager", "staff"]), async (req, res) =
     }
 });
 
-// DELETE product (Admin only)
+// delete product (Admin only)
 router.delete("/:id", auth(["admin"]), async (req, res) => {
     try {
         let product = await Product.findById(req.params.id);

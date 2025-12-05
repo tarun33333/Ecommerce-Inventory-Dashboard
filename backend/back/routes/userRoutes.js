@@ -22,6 +22,28 @@ const auth = (roles = []) => {
     };
 };
 
+const bcrypt = require("bcryptjs");
+
+// POST create user (Admin only)
+router.post("/", auth(["admin"]), async (req, res) => {
+    const { name, email, password, role } = req.body;
+    try {
+        let user = await User.findOne({ email });
+        if (user) return res.status(400).json({ msg: "User already exists" });
+
+        user = new User({ name, email, password, role });
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+
+        await user.save();
+        res.json(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
 // GET all users (Admin only)
 router.get("/", auth(["admin"]), async (req, res) => {
     try {

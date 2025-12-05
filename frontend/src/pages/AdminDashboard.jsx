@@ -5,6 +5,7 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState("users");
     const [users, setUsers] = useState([]);
     const [products, setProducts] = useState([]);
+    const [newUser, setNewUser] = useState({ name: "", email: "", password: "", role: "staff" });
 
     useEffect(() => {
         fetchUsers();
@@ -26,6 +27,23 @@ export default function AdminDashboard() {
             setProducts(res.data);
         } catch (err) {
             console.error("Error fetching products", err);
+        }
+    };
+
+    const handleUserChange = (e) => {
+        setNewUser({ ...newUser, [e.target.name]: e.target.value });
+    };
+
+    const addUser = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post("/users", newUser);
+            setNewUser({ name: "", email: "", password: "", role: "staff" });
+            fetchUsers();
+            alert("User added successfully");
+        } catch (err) {
+            console.error("Error adding user", err);
+            alert("Failed to add user");
         }
     };
 
@@ -66,7 +84,20 @@ export default function AdminDashboard() {
             <div className="tab-content">
                 {activeTab === "users" && (
                     <div>
-                        <h3 className="section-title">Users</h3>
+                        <h3 className="section-title">Add New User</h3>
+                        <form onSubmit={addUser} className="product-form">
+                            <input type="text" name="name" placeholder="Name" value={newUser.name} onChange={handleUserChange} required className="input-field" />
+                            <input type="email" name="email" placeholder="Email" value={newUser.email} onChange={handleUserChange} required className="input-field" />
+                            <input type="password" name="password" placeholder="Password" value={newUser.password} onChange={handleUserChange} required className="input-field" />
+                            <select name="role" value={newUser.role} onChange={handleUserChange} className="input-field">
+                                <option value="staff">Staff</option>
+                                <option value="manager">Manager</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                            <button type="submit" className="btn-primary">Add User</button>
+                        </form>
+
+                        <h3 className="section-title mt-4">User List</h3>
                         <table className="data-table">
                             <thead>
                                 <tr>
@@ -95,7 +126,6 @@ export default function AdminDashboard() {
                 {activeTab === "products" && (
                     <div>
                         <h3 className="section-title">Products</h3>
-                        {/* Add Product Form could go here, for now just listing */}
                         <table className="data-table">
                             <thead>
                                 <tr>
